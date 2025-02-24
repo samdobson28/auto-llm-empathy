@@ -4,3 +4,5 @@ pandas
 pytube
 pydub
 numpy
+yt-dlp
+librosa
