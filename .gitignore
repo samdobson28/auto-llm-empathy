@@ -1,2 +1,4 @@
 .env
 downloads/
+old-files/
+counter.py

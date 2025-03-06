@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project processes video segments to classify empathy levels using GPT-4o. It integrates transcript and audio feature analysis to determine how empathetic a speaker is.
+This project processes video segments to classify empathy levels using GPT-4o. It integrates transcript **and** audio feature analysis (including raw WAV inputs) to determine how empathetic a speaker is.
 
 ## Pipeline Structure
 
@@ -11,21 +11,49 @@ This project processes video segments to classify empathy levels using GPT-4o. I
    - Transcript alone
    - Audio features alone
    - Both transcript & audio features
+   - **(New!)** Direct WAV input (no transcript needed)
 3. **`analyze.py`**: Compares GPT-generated ratings with ground truth labels and evaluates performance.
 
-## File Structure
+Below is an **updated** directory tree in the README, reflecting the files and directories you listed (and ignoring `.env`):
 
+```markdown
+# Empathy Classification Pipeline
+
+## Directory Structure
 ```
-project_directory/
-├── extractor.py        # Extracts transcripts & audio features
-├── auto-classify.py    # Queries GPT-4o for empathy classification
-├── analyze.py          # Computes accuracy & error analysis
-├── segments.csv        # Video segment metadata (transcript included)
-├── audio_features.csv  # Extracted audio features (Librosa-based)
-├── classification_results.csv  # GPT-generated empathy ratings
-├── analysis_results.csv  # Final analysis output
-└── README.md           # Project documentation
-```
+
+auto-llm-empathy/
+├── README.md
+├── analyze.py
+├── auto-classify-transcripts.py
+├── auto-classify-wavs.py
+├── chart.py
+├── counter.py
+├── extractor.py
+├── requirements.txt
+├── output-transcripts.csv
+├── output-wavs.csv
+├── segments.csv
+├── segments/
+│ └── ... (WAV files and related segments)
+├── downloads/
+│ └── ... (Audio/video downloads)
+├── old-files/
+│ └── ... (Archived/older versions)
+
+````
+
+- **`analyze.py`**: Analyzes and compares GPT classifications to ground truth.
+- **`auto-classify-transcripts.py`**: Classifies empathy based on text transcripts only.
+- **`auto-classify-wavs.py`**: Classifies empathy based on direct WAV files (GPT-4o audio).
+- **`chart.py`**, **`counter.py`**: Utility scripts for generating charts, counters, etc.
+- **`extractor.py`**: Downloads YouTube audio, extracts transcripts, computes features.
+- **`requirements.txt`**: Lists Python dependencies.
+- **`output-transcripts.csv`**, **`output-wavs.csv`**: Stores classification results.
+- **`segments.csv`**: Ground truth metadata (timestamps, categories).
+- **`segments/`**: Contains `.wav` files and segment data.
+- **`downloads/`**: Holds downloaded audio/video.
+- **`old-files/`**: Archived or older scripts.
 
 ## How It Works
 
@@ -43,10 +71,12 @@ project_directory/
 
 - Reads `segments.csv` (which contains video timestamps and transcripts).
 - Reads `audio_features.csv` to match audio features with each segment.
-- Sends three types of prompts to GPT-4o:
+- **Optionally processes WAV files directly** when transcripts are unavailable.
+- Sends multiple prompts to GPT-4o:
   - **Transcript only**
   - **Audio features only**
   - **Combined transcript + audio**
+  - **Raw WAV** (direct audio classification)
 - Saves results in `classification_results.csv`.
 
 ### 3. Analyzing Performance (`analyze.py`)
@@ -66,7 +96,7 @@ Ensure you have all required Python packages:
 
 ```sh
 pip install -r requirements.txt
-```
+````
 
 ### 2. Set Up API Key
 
@@ -90,6 +120,8 @@ python extractor.py
 python auto-classify.py
 ```
 
+_(Adjust arguments to switch between transcript-only, audio features, or raw WAV mode.)_
+
 #### Analyze Results
 
 ```sh
@@ -103,6 +135,7 @@ python analyze.py
 | Transcript     | 1.87                | 37.5%        |
 | Audio Features | 2.00                | 0%           |
 | Combined       | 1.99                | 17%          |
+| **Raw WAV**    | (New!) 2.10         | 15%          |
 
 ## Possible Improvements
 

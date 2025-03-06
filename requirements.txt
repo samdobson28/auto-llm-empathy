@@ -6,3 +6,4 @@ pydub
 numpy
 yt-dlp
 librosa
+config
