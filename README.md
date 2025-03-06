@@ -3,9 +3,9 @@
 ## Pipeline Structure
 
 1. **`extractor.py`**: Downloads YouTube audio, extracts transcripts, and computes audio features.
-2. **`auto-classify-transcripts.py`**: Uses GPT-4o to classify empathy based on:
+2. **`auto-classify-transcripts-gpt4o.py`**: Uses GPT-4o to classify empathy based on:
    - Transcript
-3. **`auto-classify-wavs.py`**: Uses GPT-4o to classify empathy based on:
+3. **`auto-classify-wavs-gpt4o.py`**: Uses GPT-4o to classify empathy based on:
    - wav file
 
 ## Directory Structure
@@ -13,22 +13,22 @@
 
 auto-llm-empathy/
 ├── README.md
-├── auto-classify-transcripts.py
-├── auto-classify-wavs.py
+├── auto-classify-transcripts-gpt4o.py
+├── auto-classify-wavs-gpt4o.py
 ├── extractor.py
 ├── requirements.txt
-├── output-transcripts.csv
-├── output-wavs.csv
+├── output-transcripts-gpt4o.csv
+├── output-wavs-gpt4o.csv
 ├── segments.csv
 
 
 ````
 
-- **`auto-classify-transcripts.py`**: Classifies empathy based on text transcripts only.
-- **`auto-classify-wavs.py`**: Classifies empathy based on direct WAV files (GPT-4o audio).
+- **`auto-classify-transcripts-gpt4o.py`**: Classifies empathy based on text transcripts only.
+- **`auto-classify-wavs-gpt4o.py`**: Classifies empathy based on direct WAV files (GPT-4o audio).
 - **`extractor.py`**: Downloads YouTube audio, extracts transcripts, computes features.
 - **`requirements.txt`**: Lists Python dependencies.
-- **`output-transcripts.csv`**, **`output-wavs.csv`**: Stores classification results.
+- **`output-transcripts-gpt4o.csv`**, **`output-wavs-gpt4o.csv`**: Stores classification results.
 - **`segments.csv`**: Ground truth metadata (timestamps, categories).
 
 ## How It Works
