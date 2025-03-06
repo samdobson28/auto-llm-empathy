@@ -1,9 +1,5 @@
 # Empathy Classification Pipeline
 
-## Overview
-
-This project processes video segments to classify empathy levels using GPT-4o. It integrates transcript **and** audio feature analysis (including raw WAV inputs) to determine how empathetic a speaker is.
-
 ## Pipeline Structure
 
 1. **`extractor.py`**: Downloads YouTube audio, extracts transcripts, and computes audio features.
