@@ -7,39 +7,26 @@ This project processes video segments to classify empathy levels using GPT-4o. I
 ## Pipeline Structure
 
 1. **`extractor.py`**: Downloads YouTube audio, extracts transcripts, and computes audio features.
-2. **`auto-classify.py`**: Uses GPT-4o to classify empathy based on:
+2. **`auto-classify-transcripts.py`**: Uses GPT-4o to classify empathy based on:
+   - Transcript alone
+3. **`auto-classify-transcripts.py`**: Uses GPT-4o to classify empathy based on:
    - Transcript alone
    - Audio features alone
    - Both transcript & audio features
-   - **(New!)** Direct WAV input (no transcript needed)
-3. **`analyze.py`**: Compares GPT-generated ratings with ground truth labels and evaluates performance.
-
-Below is an **updated** directory tree in the README, reflecting the files and directories you listed (and ignoring `.env`):
-
-```markdown
-# Empathy Classification Pipeline
 
 ## Directory Structure
 ```
 
 auto-llm-empathy/
 ├── README.md
-├── analyze.py
 ├── auto-classify-transcripts.py
 ├── auto-classify-wavs.py
-├── chart.py
-├── counter.py
 ├── extractor.py
 ├── requirements.txt
 ├── output-transcripts.csv
 ├── output-wavs.csv
 ├── segments.csv
-├── segments/
-│ └── ... (WAV files and related segments)
-├── downloads/
-│ └── ... (Audio/video downloads)
-├── old-files/
-│ └── ... (Archived/older versions)
+
 
 ````
 
