@@ -18,7 +18,7 @@ MODEL = "gpt-4o-mini-audio-preview"
 
 SEGMENTS_DIR = "segments/"
 SEGMENTS_CSV = "segments.csv"
-OUTPUT_CSV = "output-wavs.csv"
+OUTPUT_CSV = "output-wavs-gpt4o.csv"
 
 PROMPT = (
     "Please classify this speech audio as exactly one of the following words "
@@ -156,7 +156,7 @@ def main():
     for filename in files:
         videoID, start, end = extract_video_info(filename)
 
-        # If this segment is already in output-wavs.csv, skip it
+        # If this segment is already in output-wavs-gpt4o.csv, skip it
         if (videoID, start, end) in already_processed:
             print(f"Skipping already-processed segment: {filename}")
             continue

@@ -7,11 +7,11 @@ We disable the wav and combined sections by commenting them out.
 The GPT prompt instructs the assistant to return exactly one of:
   'empathetic', 'anti-empathetic', or 'neutral'.
 
-An extra column "match" is added to the output (output-transcripts.csv) along with the original transcript.
+An extra column "match" is added to the output (output-transcripts-gpt4o.csv) along with the original transcript.
 A "hit" means the ground truth equals the GPT output.
 A "near-miss" is when one is neutral and the other is empathetic or anti-empathetic.
 A "miss" is when one is empathetic and the other is anti-empathetic.
-Processed results are immediately appended to output-transcripts.csv so that partial results are saved even if interrupted.
+Processed results are immediately appended to output-transcripts-gpt4o.csv so that partial results are saved even if interrupted.
 """
 
 import os
@@ -79,11 +79,11 @@ def compare_match(ground_truth: str, gpt_output: str) -> str:
 
 def main():
     segments_csv = "segments.csv"
-    output_csv = "output-transcripts.csv"
+    output_csv = "output-transcripts-gpt4o.csv"
     # segments_folder is no longer used since we are only testing transcript
     # segments_folder = "segments"
     
-    # Load keys of already processed segments from output-transcripts.csv (if it exists)
+    # Load keys of already processed segments from output-transcripts-gpt4o.csv (if it exists)
     processed_keys = set()
     if os.path.exists(output_csv):
         with open(output_csv, "r", newline="", encoding="utf-8") as out_file:
