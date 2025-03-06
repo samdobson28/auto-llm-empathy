@@ -8,11 +8,9 @@ This project processes video segments to classify empathy levels using GPT-4o. I
 
 1. **`extractor.py`**: Downloads YouTube audio, extracts transcripts, and computes audio features.
 2. **`auto-classify-transcripts.py`**: Uses GPT-4o to classify empathy based on:
-   - Transcript alone
-3. **`auto-classify-transcripts.py`**: Uses GPT-4o to classify empathy based on:
-   - Transcript alone
-   - Audio features alone
-   - Both transcript & audio features
+   - Transcript
+3. **`auto-classify-wavs.py`**: Uses GPT-4o to classify empathy based on:
+   - wav file
 
 ## Directory Structure
 ```
