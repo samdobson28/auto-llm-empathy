@@ -3,9 +3,9 @@
 ## Pipeline Structure
 
 1. **`extractor.py`**: Downloads YouTube audio, extracts transcripts, and computes audio features.
-2. **`auto-classify-transcripts-gpt4o.py`**: Uses GPT-4o to classify empathy based on:
+2. **`auto-classify-transcripts-[MODEL].py`**: Uses LLM model to classify empathy based on:
    - Transcript
-3. **`auto-classify-wavs-gpt4o.py`**: Uses GPT-4o to classify empathy based on:
+3. **`auto-classify-wavs-[MODEL].py`**: Uses LLM model to classify empathy based on:
    - wav file
 
 ## Directory Structure
@@ -13,22 +13,22 @@
 
 auto-llm-empathy/
 ├── README.md
-├── auto-classify-transcripts-gpt4o.py
-├── auto-classify-wavs-gpt4o.py
+├── auto-classify-transcripts-[MODEL].py
+├── auto-classify-wavs-[MODEL].py
 ├── extractor.py
 ├── requirements.txt
-├── output-transcripts-gpt4o.csv
-├── output-wavs-gpt4o.csv
+├── output-transcripts-[MODEL].csv
+├── output-wavs-[MODEL].csv
 ├── segments.csv
 
 
 ````
 
-- **`auto-classify-transcripts-gpt4o.py`**: Classifies empathy based on text transcripts only.
-- **`auto-classify-wavs-gpt4o.py`**: Classifies empathy based on direct WAV files (GPT-4o audio).
+- **`auto-classify-transcripts-[MODEL].py`**: Classifies empathy based on text transcripts only.
+- **`auto-classify-wavs-[MODEL].py`**: Classifies empathy based on direct WAV files (GPT-4o audio).
 - **`extractor.py`**: Downloads YouTube audio, extracts transcripts, computes features.
 - **`requirements.txt`**: Lists Python dependencies.
-- **`output-transcripts-gpt4o.csv`**, **`output-wavs-gpt4o.csv`**: Stores classification results.
+- **`output-transcripts-[MODEL].csv`**, **`output-wavs-[MODEL].csv`**: Stores classification results.
 - **`segments.csv`**: Ground truth metadata (timestamps, categories).
 
 ## How It Works
@@ -38,13 +38,15 @@ auto-llm-empathy/
 - Downloads YouTube audio.
 - extracts segments according to time stamps in segments.csv, puts those segmented wavs into segments/
 
-### 2. Classifying Empathy (`auto-classify.py`)
+### 2. Classifying Empathy (`auto-classify-transcripts-[MODEL].py`)
 
-- Reads `segments.csv` (which contains video timestamps and transcripts).
-- **Optionally processes WAV files directly** when transcripts are unavailable.
-- Sends multiple prompts to GPT-4o:
-  - **Transcript only**
-- Saves results in `output-transcripts.csv`.
+- Reads `segments.csv` (which contains video timestamps and transcripts) and segments/ folder for wav files
+- Saves results in `output-transcripts-[MODEL].csv`.
+
+### 3. Classifying Empathy (`auto-classify-wavs-[MODEL].py`)
+
+- Reads segments/ folder for wav files
+- Saves results in `output-wavs-[MODEL].csv`.
 
 ## Running the Pipeline
 
