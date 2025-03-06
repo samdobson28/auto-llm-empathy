@@ -1,26 +1,30 @@
-# auto-classify-wavs-gpt4o.py
-
 import os
 import sys
 import csv
 import json
 import re
 from dotenv import load_dotenv
-from openai import OpenAI
+from google import genai
+from google.genai import types
 
 #########################
 # Configuration
 #########################
 
 load_dotenv()
-openai_api_key = os.getenv("OPENAI_API_KEY")
+# Use your Gemini API key from Google AI Studio
+google_api_key = os.getenv("GOOGLE_API_KEY")
+if not google_api_key:
+    raise ValueError("GOOGLE_API_KEY environment variable not set")
 
-client = OpenAI(api_key=openai_api_key)
-MODEL = "gpt-4o-mini-audio-preview"
+# Initialize Gemini client (using the Gemini Developer API with v1alpha endpoints)
+client = genai.Client(api_key=google_api_key, http_options={'api_version': 'v1alpha'})
+# Set your chosen Gemini model (e.g. Gemini 2.0 Flash)
+MODEL = "gemini-2.0-flash"
 
 SEGMENTS_DIR = "segments/"
 SEGMENTS_CSV = "segments.csv"
-OUTPUT_CSV = "output-wavs-gpt4o.csv"
+OUTPUT_CSV = "output-wavs-gemini.csv"
 
 PROMPT = (
     "Please classify this speech audio as exactly one of the following words "
@@ -43,11 +47,10 @@ if os.path.exists(SEGMENTS_CSV):
 # Helper Functions
 #########################
 
-def encode_audio(file_path: str) -> str:
-    """Convert WAV file to base64."""
-    import base64
+def encode_audio(file_path: str) -> bytes:
+    """Read WAV file and return its bytes."""
     with open(file_path, "rb") as audio_file:
-        return base64.b64encode(audio_file.read()).decode("utf-8")
+        return audio_file.read()
 
 def extract_video_info(filename: str):
     """
@@ -63,65 +66,43 @@ def extract_video_info(filename: str):
     return (filename, "", "")
 
 def compare_classification(pred: str, actual: str):
-    """Compare to ground truth: 'hit', 'near-miss', or 'miss'."""
-    pred_lower = pred.lower()
-    actual_lower = actual.lower()
+    """
+    Compare predicted vs actual category.
+      - 'hit' if they match exactly,
+      - 'near-miss' if one is "neutral" and the other is either "empathetic" or "anti-empathetic",
+      - otherwise, 'miss'.
+    """
+    pred_lower = pred.lower().strip()
+    actual_lower = actual.lower().strip()
     if pred_lower == actual_lower:
         return "hit"
-    elif pred_lower in ["empathetic","neutral","anti-empathetic"] and \
-         actual_lower in ["empathetic","neutral","anti-empathetic"]:
+    elif ((pred_lower == "neutral" and actual_lower in ["empathetic", "anti-empathetic"]) or
+          (actual_lower == "neutral" and pred_lower in ["empathetic", "anti-empathetic"])):
         return "near-miss"
     else:
         return "miss"
 
 def classify_audio(file_path: str):
-    """Call GPT-4o (audio) and parse classification label."""
-    encoded = encode_audio(file_path)
-    response = client.chat.completions.create(
+    """
+    Reads the audio file, creates an audio part, and sends both the audio and a text prompt
+    to Gemini. Parses the text response as the classification.
+    """
+    audio_bytes = encode_audio(file_path)
+    # Create an audio part from the raw bytes; ensure the MIME type matches your file (e.g., "audio/wav")
+    audio_part = types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav")
+    
+    # Prepare contents: first the audio part, then the text prompt.
+    contents = [audio_part, PROMPT]
+    
+    response = client.models.generate_content(
         model=MODEL,
-        modalities=["text", "audio"],
-        audio={"voice": "alloy", "format": "wav"},
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": PROMPT
-                    },
-                    {
-                        "type": "input_audio",
-                        "input_audio": {"data": encoded, "format": "wav"}
-                    }
-                ]
-            }
-        ]
+        contents=contents,
+        config=types.GenerateContentConfig()
     )
-
-    resp_dict = response.to_dict()
-
-    # content might be None or a list
-    classification = None
-    message_obj = resp_dict["choices"][0]["message"]
-    content_data = message_obj.get("content")  # Possibly None or list
-
-    if content_data and isinstance(content_data, list):
-        # Try to find a transcript
-        for chunk in content_data:
-            if isinstance(chunk, dict) and "transcript" in chunk:
-                classification = chunk["transcript"].strip().lower()
-                break
-
-    # If still no classification, check .audio.transcript
-    if not classification and isinstance(message_obj.get("audio"), dict):
-        classification = message_obj["audio"].get("transcript", "").strip().lower()
-
-    # fallback if not found
-    if not classification:
-        classification = "NO_RESPONSE"
-
-    # If classification has extra text, do a quick substring check
-    valid = {"empathetic","neutral","anti-empathetic"}
+    
+    classification = response.text.strip().lower() if response.text else "NO_RESPONSE"
+    # Post-process the text response to extract one of the valid labels
+    valid = {"empathetic", "neutral", "anti-empathetic"}
     if classification not in valid:
         found_label = None
         for label in valid:
@@ -132,7 +113,7 @@ def classify_audio(file_path: str):
             classification = found_label
         else:
             classification = "NO_RESPONSE"
-
+    
     return classification
 
 #########################
@@ -144,21 +125,18 @@ def main():
     if not os.path.exists(OUTPUT_CSV):
         with open(OUTPUT_CSV, "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(["videoID","start","end","Category","classification-llm-output","match"])
-
-    # Build a set of already processed (videoID, start, end)
+            writer.writerow(["videoID", "start", "end", "Category", "classification-llm-output", "match"])
+    
+    # Build a set of already processed segments
     already_processed = set()
     with open(OUTPUT_CSV, "r", newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            # we skip them
             already_processed.add((row["videoID"], row["start"], row["end"]))
-
+    
     files = sorted([f for f in os.listdir(SEGMENTS_DIR) if f.endswith(".wav")])
     for filename in files:
         videoID, start, end = extract_video_info(filename)
-
-        # If this segment is already in output-wavs-gpt4o.csv, skip it
         if (videoID, start, end) in already_processed:
             print(f"Skipping already-processed segment: {filename}")
             continue
@@ -169,16 +147,14 @@ def main():
             classification = classify_audio(file_path)
             cat = ground_truth.get((videoID, start, end), "")
             match = compare_classification(classification, cat)
-
-            # Write step-by-step
+            
             with open(OUTPUT_CSV, "a", newline="") as f:
                 writer = csv.writer(f)
                 writer.writerow([videoID, start, end, cat, classification, match])
                 f.flush()
-
         except Exception as e:
             print(f"Error processing {filename}: {e}")
-
+    
     print(f"Classification complete! Results in {OUTPUT_CSV}")
 
 if __name__ == "__main__":
